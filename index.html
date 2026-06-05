@@ -397,7 +397,7 @@ body{font-family:var(--font);font-size:13px;color:var(--text);height:100vh;overf
 
     <!-- ① 변경등록신청서 입력 -->
     <div class="tab-inputs" id="inputs-cr">
-      <div class="section-lbl">📝 변경등록신청서 입력</div>
+      <div class="section-lbl">📝 변경등록신청서(시청) 입력</div>
       <div class="sub-lbl">법인 선택 시 자동 입력 (수정 가능)</div>
       <div class="ff"><label>① 대표자 성명</label>
         <input type="text" id="inp-cr-rep-name" placeholder="대표자 성명" oninput="render()">
@@ -537,7 +537,7 @@ body{font-family:var(--font);font-size:13px;color:var(--text);height:100vh;overf
 
     <!-- ③ 신규등록신청서 입력 -->
     <div class="tab-inputs" id="inputs-nr" style="display:none">
-      <div class="section-lbl">📄 신규등록신청서 입력</div>
+      <div class="section-lbl">📄 신규등록신청서(등록소) 입력</div>
       <div class="sub-lbl">법인 선택 시 자동 입력</div>
       <div class="ff"><label>① 법인명</label>
         <input type="text" id="inp-nr-corp-name" placeholder="법인명" oninput="render()">
@@ -720,14 +720,14 @@ body{font-family:var(--font);font-size:13px;color:var(--text);height:100vh;overf
   <!-- ================== RIGHT PANEL ================== -->
   <div class="panel-right">
     <div class="tab-bar">
-      <button class="tab-btn active" id="tab-btn-cr"  onclick="switchTab('cr')">📄 변경등록신청서</button>
+      <button class="tab-btn active" id="tab-btn-cr"  onclick="switchTab('cr')">📄 변경등록신청서(시청)</button>
       <button class="tab-btn"        id="tab-btn-bm"  onclick="switchTab('bm')">🏛️ 이사회의결서</button>
-      <button class="tab-btn"        id="tab-btn-nr"  onclick="switchTab('nr')">📄 신규등록신청서</button>
+      <button class="tab-btn"        id="tab-btn-nr"  onclick="switchTab('nr')">📄 신규등록신청서(등록소)</button>
       <button class="tab-btn"        id="tab-btn-poa" onclick="switchTab('poa')">📋 위임장</button>
     </div>
     <div class="a4-canvas">
       <div class="print-toolbar">
-        <span class="pt-label">미리보기 : <b id="doc-label">변경등록신청서</b></span>
+        <span class="pt-label">미리보기 : <b id="doc-label">변경등록신청서(시청)</b></span>
         <button class="btn-print" onclick="window.print()">🖨️ 인쇄하기</button>
       </div>
       <div class="a4-paper" id="doc-paper">
@@ -907,9 +907,9 @@ function onDelegateChange(){
    TAB CONFIG
 ================================================================ */
 const TABS={
-  cr: {label:'자동차대여사업 변경등록신청서',btn:'tab-btn-cr', inputs:'inputs-cr', bg:"url('change_form.png')"},
+  cr: {label:'자동차대여사업 변경등록신청서(시청)',btn:'tab-btn-cr', inputs:'inputs-cr', bg:"url('change_form.png')"},
   bm: {label:'이사회의결서',                  btn:'tab-btn-bm', inputs:'inputs-bm', bg:"url('change_form_2.png')"},
-  nr: {label:'자동차 신규등록신청서',          btn:'tab-btn-nr', inputs:'inputs-nr', bg:"url('change_form_3.png')"},
+  nr: {label:'자동차 신규등록신청서(등록소)',   btn:'tab-btn-nr', inputs:'inputs-nr', bg:"url('change_form_3.png')"},
   poa:{label:'위임장',                        btn:'tab-btn-poa',inputs:'inputs-poa',bg:"url('change_form_4.png')"},
 };
 function switchTab(tab){
