@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>차량 등록 서류 시스템 | 아이카그룹</title>
+<style>
+/* ===== RESET ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+/* ===== TOKENS ===== */
+:root{
+  --primary:#1a2f5e; --primary-2:#243e7a; --accent:#c0392b;
+  --left-bg:#f5f6fa; --right-bg:#3b4259; --card:#ffffff;
+  --border:#e0e4ef; --text:#1a1a2e; --muted:#8492a6;
+  --tab-bar:#2e3550; --hh:52px;
+  --font:'Malgun Gothic','맑은 고딕',sans-serif;
+}
+
+/* ===== BASE ===== */
+body{font-family:var(--font);font-size:13px;color:var(--text);height:100vh;overflow:hidden;background:var(--left-bg);}
+
+/* ===== HEADER ===== */
+.app-header{
+  position:fixed;top:0;left:0;right:0;height:var(--hh);
+  background:linear-gradient(90deg,var(--primary) 0%,var(--primary-2) 100%);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 22px;z-index:200;box-shadow:0 2px 10px rgba(0,0,0,.25);
+}
+.hdr-brand{display:flex;align-items:center;gap:11px;}
+.hdr-logo{
+  width:34px;height:34px;background:var(--accent);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:900;color:#fff;flex-shrink:0;
+}
+.hdr-name{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.2px;}
+.hdr-sub{font-size:10.5px;color:rgba(255,255,255,.5);margin-top:1px;}
+.hdr-tag{
+  font-size:11px;font-weight:600;color:rgba(255,255,255,.7);
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
+  padding:3px 13px;border-radius:20px;
+}
+
+/* ===== LAYOUT ===== */
+.app-body{
+  display:grid;grid-template-columns:1fr 1fr;
+  height:calc(100vh - var(--hh));margin-top:var(--hh);
+}
+
+/* ===== LEFT PANEL ===== */
+.panel-left{
+  background:var(--left-bg);border-right:1.5px solid var(--border);
+  overflow-y:auto;padding:20px 18px;
+  display:flex;flex-direction:column;gap:14px;
+}
+.panel-left::-webkit-scrollbar{width:5px;}
+.panel-left::-webkit-scrollbar-track{background:transparent;}
+.panel-left::-webkit-scrollbar-thumb{background:#ccd1e0;border-radius:3px;}
+
+/* ===== LABELS ===== */
+.section-lbl{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+  color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:6px;
+}
+.section-lbl::after{content:'';flex:1;height:1px;background:var(--border);}
+.sub-lbl{
+  font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.5px;color:#9aa3b8;margin-top:2px;
+}
+
+/* ===== FORM FIELDS ===== */
+.ff{display:flex;flex-direction:column;gap:5px;}
+.ff label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.ff input,.ff select,.ff textarea{
+  width:100%;padding:9px 13px;
+  border:1.5px solid var(--border);border-radius:8px;
+  font-size:13.5px;font-family:var(--font);color:var(--text);background:var(--card);
+  transition:border-color .2s,box-shadow .2s;
+}
+.ff textarea{resize:vertical;min-height:68px;line-height:1.6;}
+.ff input:focus,.ff select:focus,.ff textarea:focus{
+  outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,47,94,.09);
+}
+
+/* ===== UPLOAD ===== */
+.upload-zone{
+  border:2px dashed #b0bdd8;border-radius:12px;background:var(--card);
+  padding:22px 14px;text-align:center;cursor:pointer;
+  transition:border-color .2s,background .2s,transform .1s;user-select:none;
+}
+.upload-zone:hover{border-color:var(--primary);background:#eef3ff;}
+.upload-zone.drag-over{border-color:var(--accent);background:#fff5f4;transform:scale(1.01);}
+.upload-icon{font-size:28px;margin-bottom:7px;line-height:1;}
+.upload-title{font-size:13px;font-weight:700;color:var(--primary);margin-bottom:3px;}
+.upload-hint{font-size:11px;color:var(--muted);line-height:1.6;}
+.upload-hint b{color:var(--accent);}
+#file-input{display:none;}
+.file-list{display:flex;flex-direction:column;gap:5px;margin-top:6px;}
+.file-item{
+  display:flex;align-items:center;gap:8px;padding:7px 11px;
+  background:#eef3ff;border:1px solid #c7d4f0;border-radius:8px;
+  font-size:12px;color:var(--primary);
+}
+.file-item .fi-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.file-item .fi-del{cursor:pointer;color:var(--muted);font-size:14px;}
+.file-item .fi-del:hover{color:var(--accent);}
+
+/* ===== COMPANY BADGE ===== */
+.co-badge{
+  display:none;background:linear-gradient(135deg,#ebf3ff,#dde9ff);
+  border:1px solid #93c5fd;border-radius:10px;
+  padding:11px 13px;font-size:12px;line-height:1.9;margin-top:9px;
+}
+.co-badge.on{display:block;}
+.co-badge-name{font-size:13.5px;font-weight:800;color:var(--primary);margin-bottom:3px;}
+.co-row{display:flex;gap:8px;}
+.co-k{font-weight:700;color:#3b6bbf;min-width:70px;}
+
+/* ===== USER DB ===== */
+.udb-toggle{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 13px;
+  background:linear-gradient(135deg,#e8f0fe,#dce8ff);
+  border:1.5px solid #93b4f8;border-radius:9px;
+  cursor:pointer;user-select:none;transition:background .15s,border-color .15s;
+}
+.udb-toggle:hover{background:linear-gradient(135deg,#d8e8ff,#ccdaff);border-color:var(--primary);}
+.udb-toggle-text{font-size:12px;font-weight:700;color:var(--primary);}
+.udb-cnt{
+  font-size:10px;font-weight:700;background:var(--primary);color:#fff;
+  padding:2px 9px;border-radius:20px;flex-shrink:0;
+}
+.udb-panel{
+  display:none;flex-direction:column;gap:9px;
+  margin-top:8px;padding:13px;
+  background:var(--card);border:1.5px solid var(--border);border-radius:10px;
+}
+.udb-panel.open{display:flex;}
+.udb-form{display:flex;flex-direction:column;gap:6px;}
+.udb-form input{
+  width:100%;padding:8px 12px;
+  border:1.5px solid var(--border);border-radius:7px;
+  font-size:13px;font-family:var(--font);color:var(--text);background:var(--card);
+}
+.udb-form input:focus{outline:none;border-color:var(--primary);}
+.udb-add-btn{
+  padding:9px;background:#27ae60;color:#fff;
+  border:none;border-radius:7px;
+  font-size:12.5px;font-weight:700;cursor:pointer;font-family:var(--font);
+}
+.udb-add-btn:hover{background:#219150;}
+.udb-div{height:1px;background:var(--border);}
+.udb-list{display:flex;flex-direction:column;gap:4px;}
+.udb-item{
+  display:flex;align-items:center;gap:8px;padding:7px 10px;
+  background:#f0f5ff;border:1px solid #c7d4f0;border-radius:7px;
+}
+.udb-item-info{flex:1;min-width:0;}
+.udb-item-name{font-size:13px;font-weight:700;color:var(--primary);display:block;}
+.udb-item-meta{font-size:10.5px;color:var(--muted);display:block;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.udb-del{
+  flex-shrink:0;width:24px;height:24px;background:none;
+  border:1.5px solid #ddd;border-radius:5px;color:var(--muted);
+  font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.udb-del:hover{color:var(--accent);border-color:var(--accent);}
+.udb-empty{font-size:11.5px;color:var(--muted);text-align:center;padding:8px 0;}
+
+/* ===== TAB INPUTS ===== */
+.tab-inputs{display:flex;flex-direction:column;gap:10px;}
+
+/* ===== ADJUSTMENT PANEL ===== */
+.adj-panel{
+  display:flex;flex-direction:column;gap:9px;
+  background:#f8faff;border:1.5px solid var(--border);
+  border-radius:10px;padding:13px;margin-top:4px;
+}
+/* 배포용 전체 좌표 복사 박스 */
+.deploy-box{
+  background:linear-gradient(135deg,#fff8e6,#fff3d4);
+  border:1.5px solid #f0c040;border-radius:8px;
+  padding:10px 12px;display:flex;flex-direction:column;gap:7px;
+}
+.deploy-box-title{font-size:11px;font-weight:700;color:#8a6500;}
+.deploy-btn-row{display:flex;gap:7px;}
+.btn-copy-all{
+  flex:1;padding:9px 0;
+  background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;
+  border:none;border-radius:7px;font-size:12px;font-weight:700;
+  cursor:pointer;font-family:var(--font);letter-spacing:.2px;
+  transition:opacity .15s;
+}
+.btn-copy-all:hover{opacity:.88;}
+.btn-show-code{
+  padding:9px 12px;
+  background:#fff;color:#8a6500;
+  border:1.5px solid #f0c040;border-radius:7px;font-size:12px;font-weight:700;
+  cursor:pointer;font-family:var(--font);
+  transition:background .15s;
+}
+.btn-show-code:hover{background:#fff8e6;}
+.deploy-code-wrap{display:none;flex-direction:column;gap:6px;}
+.deploy-code-pre{
+  font-size:9px;background:#fff;padding:8px;
+  border-radius:6px;border:1px solid #e8c000;
+  white-space:pre-wrap;overflow-x:auto;max-height:150px;overflow-y:auto;
+  line-height:1.5;
+}
+.deploy-notice{display:none;font-size:11px;color:#27ae60;font-weight:700;text-align:center;padding:2px 0;}
+
+/* 개인 저장 영역 */
+.personal-box{display:flex;flex-direction:column;gap:8px;}
+.adj-info{
+  font-size:11px;font-weight:700;color:var(--primary);
+  background:#e6eeff;padding:5px 11px;border-radius:6px;text-align:center;
+}
+.adj-row{display:flex;align-items:center;gap:8px;}
+.adj-step{
+  width:68px;padding:5px 8px;
+  border:1.5px solid var(--border);border-radius:7px;
+  font-size:13px;font-family:var(--font);background:var(--card);color:var(--text);
+}
+.adj-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;width:136px;}
+.adj-dir{
+  padding:6px 0;background:var(--card);border:1.5px solid var(--border);
+  border-radius:6px;font-size:14px;cursor:pointer;font-family:var(--font);text-align:center;
+  transition:background .1s;
+}
+.adj-dir:hover{background:#e6eeff;border-color:var(--primary);}
+.adj-save{
+  padding:8px 14px;background:var(--primary);color:#fff;border:none;
+  border-radius:7px;font-size:12px;font-weight:700;
+  cursor:pointer;font-family:var(--font);
+}
+.adj-save:hover{background:var(--primary-2);}
+.adj-notice{display:none;font-size:11px;color:#27ae60;font-weight:700;text-align:center;}
+
+/* ===== RIGHT PANEL ===== */
+.panel-right{background:var(--right-bg);display:flex;flex-direction:column;overflow:hidden;}
+.tab-bar{
+  background:var(--tab-bar);padding:0 16px;
+  display:flex;align-items:flex-end;gap:3px;
+  flex-shrink:0;border-bottom:2px solid rgba(255,255,255,.06);
+}
+.tab-btn{
+  padding:11px 16px;background:transparent;
+  color:rgba(255,255,255,.45);border:none;
+  border-bottom:2px solid transparent;margin-bottom:-2px;
+  font-size:12px;font-weight:600;font-family:var(--font);
+  cursor:pointer;white-space:nowrap;
+  transition:color .15s,border-color .15s;
+}
+.tab-btn:hover{color:rgba(255,255,255,.8);}
+.tab-btn.active{color:#fff;border-bottom-color:#5b9eff;}
+.a4-canvas{
+  flex:1;overflow:auto;display:flex;flex-direction:column;
+  align-items:flex-start;padding:22px 18px 28px;
+}
+.a4-canvas::-webkit-scrollbar{width:5px;}
+.a4-canvas::-webkit-scrollbar-track{background:transparent;}
+.a4-canvas::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px;}
+.print-toolbar{
+  width:100%;max-width:793.7px;display:flex;align-items:center;
+  justify-content:space-between;margin-bottom:11px;
+}
+.pt-label{font-size:12px;color:rgba(255,255,255,.5);}
+.pt-label b{color:rgba(255,255,255,.85);}
+.btn-print{
+  padding:8px 20px;background:var(--accent);color:#fff;
+  border:none;border-radius:7px;font-size:12px;font-weight:700;
+  font-family:var(--font);cursor:pointer;
+  display:flex;align-items:center;gap:6px;
+}
+.btn-print:hover{background:#a93226;}
+
+/* ===== A4 PAPER ===== */
+.a4-paper{
+  width:793.7px;height:1122.5px;background:#fff;
+  border-radius:2px;
+  box-shadow:0 8px 40px rgba(0,0,0,.4),0 2px 8px rgba(0,0,0,.2);
+  position:relative;overflow:visible;flex-shrink:0;
+}
+.a4-paper.bg-mode{background-size:100% 100%;background-repeat:no-repeat;}
+.paper-ph{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:11px;color:#d0d5e0;
+}
+.paper-ph .ph-icon{font-size:42px;}
+.paper-ph p{font-size:13px;font-weight:600;color:#c5cad8;text-align:center;}
+.paper-ph small{font-size:11px;color:#cdd2de;}
+
+/* ===== FIELD OVERLAY ===== */
+.cr-field{
+  position:absolute;
+  font-family:'Malgun Gothic','맑은 고딕',serif;
+  font-size:9pt;color:#000;
+  white-space:pre-wrap;pointer-events:none;
+  line-height:1.35;max-width:340px;
+}
+
+/* ===== PRINT ===== */
+@media print{
+  .app-header,.panel-left,.tab-bar,.print-toolbar{display:none !important;}
+  body{height:auto !important;overflow:visible !important;background:#fff !important;}
+  .app-body{display:block !important;height:auto !important;margin-top:0 !important;}
+  .panel-right{display:block !important;background:#fff !important;overflow:visible !important;height:auto !important;}
+  .a4-canvas{display:block !important;padding:0 !important;overflow:visible !important;height:auto !important;}
+  .a4-paper{
+    display:block !important;width:793.7px !important;height:1122.5px !important;
+    transform:none !important;box-shadow:none !important;
+    border-radius:0 !important;position:relative !important;overflow:visible !important;
+    -webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;
+  }
+  .cr-field{display:block !important;visibility:visible !important;position:absolute !important;}
+  .paper-ph{display:none !important;}
+  @page{size:A4;margin:0;}
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="hdr-brand">
+    <div class="hdr-logo">아</div>
+    <div>
+      <div class="hdr-name">아이카그룹 차량 등록 서류 시스템</div>
+      <div class="hdr-sub">Vehicle Registration Document System</div>
+    </div>
+  </div>
+  <div class="hdr-tag">경영지원팀 전용</div>
+</header>
+
+<div class="app-body">
+
+  <!-- ================== LEFT PANEL ================== -->
+  <div class="panel-left">
+
+    <!-- 파일 업로드 -->
+    <div>
+      <div class="section-lbl">📂 서류 파일 업로드</div>
+      <div class="upload-zone" id="drop-zone"
+           onclick="document.getElementById('file-input').click()"
+           ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+        <div class="upload-icon">📄</div>
+        <div class="upload-title">파일을 드래그하거나 클릭하여 업로드</div>
+        <div class="upload-hint">사업자등록증, 매매계약서 등 <b>PDF / JPG / PNG</b></div>
+        <input type="file" id="file-input" multiple accept=".pdf,.jpg,.jpeg,.png" onchange="onFileSelect(event)">
+      </div>
+      <div class="file-list" id="file-list"></div>
+    </div>
+
+    <!-- 법인 선택 -->
+    <div>
+      <div class="section-lbl">🏢 법인 선택</div>
+      <div class="ff">
+        <label>법인 <span style="color:#c0392b">*</span></label>
+        <select id="sel-company" onchange="onCompanyChange()">
+          <option value="">-- 법인을 선택하세요 --</option>
+          <option value="0">주식회사 아이카</option>
+          <option value="1">주식회사 달카</option>
+          <option value="2">주식회사 렌트로</option>
+          <option value="3">주식회사 동행카</option>
+          <option value="4">서현렌트카 주식회사</option>
+        </select>
+      </div>
+      <div class="co-badge" id="co-badge">
+        <div class="co-badge-name" id="co-name">—</div>
+        <div class="co-row"><span class="co-k">사업자번호</span><span id="co-biz">—</span></div>
+        <div class="co-row"><span class="co-k">법인등록번호</span><span id="co-reg">—</span></div>
+        <div class="co-row"><span class="co-k">대표이사</span><span id="co-ceo">—</span></div>
+        <div class="co-row"><span class="co-k">주소</span><span id="co-addr">—</span></div>
+        <div class="co-row"><span class="co-k">대표전화</span><span id="co-tel">—</span></div>
+      </div>
+    </div>
+
+    <!-- 신청인/대리인 DB -->
+    <div>
+      <div class="section-lbl">👥 신청인 / 대리인 등록</div>
+      <div class="udb-toggle" onclick="toggleUDB()">
+        <span class="udb-toggle-text" id="udb-lbl">▶ 사용자 관리 열기</span>
+        <span class="udb-cnt" id="udb-cnt">0명</span>
+      </div>
+      <div class="udb-panel" id="udb-panel">
+        <div class="sub-lbl" style="margin-top:0">새 사용자 등록</div>
+        <div class="udb-form">
+          <input type="text" id="udb-name"    placeholder="이름 *">
+          <input type="text" id="udb-rrn"     placeholder="주민등록번호 (예: 850315-1234567)">
+          <input type="text" id="udb-address" placeholder="주소">
+          <input type="text" id="udb-phone"   placeholder="전화번호 (예: 010-0000-0000)">
+          <button class="udb-add-btn" onclick="addUser()">➕ 등록</button>
+        </div>
+        <div class="udb-div"></div>
+        <div class="sub-lbl" style="margin-top:0">등록된 사용자</div>
+        <div class="udb-list" id="udb-list"></div>
+      </div>
+    </div>
+
+    <!-- ① 변경등록신청서 입력 -->
+    <div class="tab-inputs" id="inputs-cr">
+      <div class="section-lbl">📝 변경등록신청서 입력</div>
+      <div class="sub-lbl">법인 선택 시 자동 입력 (수정 가능)</div>
+      <div class="ff"><label>① 대표자 성명</label>
+        <input type="text" id="inp-cr-rep-name" placeholder="대표자 성명" oninput="render()">
+      </div>
+      <div class="ff">
+        <label>② 법인등록번호 <small style="font-size:9px;color:#27ae60;font-weight:400;text-transform:none">(우측 칸 출력)</small></label>
+        <input type="text" id="inp-cr-corp-reg" placeholder="법인등록번호" oninput="render()">
+      </div>
+      <div class="ff"><label>③ 법인명</label>
+        <input type="text" id="inp-cr-corp-name" placeholder="법인명" oninput="render()">
+      </div>
+      <div class="ff"><label>④ 주소</label>
+        <input type="text" id="inp-cr-corp-addr" placeholder="주소" oninput="render()">
+      </div>
+      <div class="sub-lbl">직접 입력</div>
+      <div class="ff"><label>⑤ 변경 후 내용</label>
+        <textarea id="inp-cr-after" rows="3" placeholder="예: 수원차고지 승용 증차 1대" oninput="render()"></textarea>
+      </div>
+      <div class="ff"><label>⑥ 변경 사유</label>
+        <input type="text" id="inp-cr-reason" placeholder="예: 총 1대 영업 활성화" list="cr-reason-list" oninput="render()">
+        <datalist id="cr-reason-list">
+          <option value="영업 활성화"><option value="총 1대 영업 활성화"><option value="총 2대 영업 활성화"><option value="차량 대수 증차"><option value="사업 확장">
+        </datalist>
+      </div>
+      <div class="sub-lbl">신청 날짜</div>
+      <div class="ff"><label>⑦ 신청일</label>
+        <input type="date" id="inp-cr-date" oninput="render()">
+      </div>
+      <!-- 미세 조정 -->
+      <div class="adj-panel">
+        <div class="section-lbl">🔧 인쇄 위치 미세 조정</div>
+        <!-- 배포용 전체 좌표 복사 -->
+        <div class="deploy-box">
+          <div class="deploy-box-title">🚀 배포용 마스터 좌표 내보내기</div>
+          <div class="deploy-btn-row">
+            <button class="btn-copy-all" onclick="copyAllCoords('cr')">📋 전체 좌표 복사</button>
+            <button class="btn-show-code" onclick="toggleDeployCode('cr')">코드 보기</button>
+          </div>
+          <div class="deploy-notice" id="deploy-notice-cr">✅ 전체 좌표가 클립보드에 복사되었습니다!</div>
+          <div class="deploy-code-wrap" id="deploy-code-wrap-cr">
+            <pre class="deploy-code-pre" id="deploy-code-cr"></pre>
+          </div>
+        </div>
+        <!-- 개인 저장 -->
+        <div class="personal-box">
+          <div class="ff"><label>조절할 필드</label>
+            <select id="adj-sel-cr" onchange="showAdjInfo('cr',this.value)">
+              <option value="pv-cr-rep-name">① 대표자 성명</option>
+              <option value="pv-cr-corp-reg">② 법인등록번호 (우측 칸)</option>
+              <option value="pv-cr-corp-name">③ 법인명</option>
+              <option value="pv-cr-corp-addr">④ 주소</option>
+              <option value="pv-cr-after">⑤ 변경 후 내용</option>
+              <option value="pv-cr-reason">⑥ 변경 사유</option>
+              <option value="pv-cr-year">신청일 (년)</option>
+              <option value="pv-cr-month">신청일 (월)</option>
+              <option value="pv-cr-day">신청일 (일)</option>
+              <option value="pv-cr-sig">신청인 법인명</option>
+            </select>
+          </div>
+          <div class="adj-info" id="adj-info-cr">필드를 선택하면 좌표가 표시됩니다</div>
+          <div class="adj-row">
+            <span class="sub-lbl" style="margin-top:0;white-space:nowrap">이동 간격 (px)</span>
+            <input type="number" id="adj-step-cr" class="adj-step" value="5" min="1" max="50">
+          </div>
+          <div class="adj-grid">
+            <div></div><button class="adj-dir" onclick="moveField('cr','up')">↑</button><div></div>
+            <button class="adj-dir" onclick="moveField('cr','left')">←</button>
+            <button class="adj-dir" onclick="moveField('cr','down')">↓</button>
+            <button class="adj-dir" onclick="moveField('cr','right')">→</button>
+          </div>
+          <button class="adj-save" onclick="saveMyCoords('cr')">💾 내 화면에 저장 (localStorage)</button>
+          <div class="adj-notice" id="adj-notice-cr">✅ 내 화면에 저장되었습니다!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ② 이사회의결서 입력 -->
+    <div class="tab-inputs" id="inputs-bm" style="display:none">
+      <div class="section-lbl">🏛️ 이사회의결서 입력</div>
+      <div class="sub-lbl">직접 입력</div>
+      <div class="ff"><label>① 의결 날짜</label>
+        <input type="date" id="inp-bm-date" oninput="render()">
+      </div>
+      <div class="ff"><label>② 증차 차량 대수</label>
+        <input type="number" id="inp-bm-count" placeholder="예: 50" min="1" oninput="render()">
+      </div>
+      <div class="sub-lbl">하단 서명용</div>
+      <div class="ff"><label>③ 서명 날짜</label>
+        <input type="date" id="inp-bm-date2" oninput="render()">
+      </div>
+      <div class="sub-lbl">법인 선택 시 자동 입력</div>
+      <div class="ff"><label>④ 신청 법인명</label>
+        <input type="text" id="inp-bm-corp-name" placeholder="법인명" oninput="render()">
+      </div>
+      <div class="adj-panel">
+        <div class="section-lbl">🔧 인쇄 위치 미세 조정</div>
+        <div class="deploy-box">
+          <div class="deploy-box-title">🚀 배포용 마스터 좌표 내보내기</div>
+          <div class="deploy-btn-row">
+            <button class="btn-copy-all" onclick="copyAllCoords('bm')">📋 전체 좌표 복사</button>
+            <button class="btn-show-code" onclick="toggleDeployCode('bm')">코드 보기</button>
+          </div>
+          <div class="deploy-notice" id="deploy-notice-bm">✅ 전체 좌표가 클립보드에 복사되었습니다!</div>
+          <div class="deploy-code-wrap" id="deploy-code-wrap-bm">
+            <pre class="deploy-code-pre" id="deploy-code-bm"></pre>
+          </div>
+        </div>
+        <div class="personal-box">
+          <div class="ff"><label>조절할 필드</label>
+            <select id="adj-sel-bm" onchange="showAdjInfo('bm',this.value)">
+              <option value="pv-bm-year">의결날짜 (년)</option>
+              <option value="pv-bm-month">의결날짜 (월)</option>
+              <option value="pv-bm-day">의결날짜 (일)</option>
+              <option value="pv-bm-count">② 증차 대수</option>
+              <option value="pv-bm2-year">서명날짜 (년)</option>
+              <option value="pv-bm2-month">서명날짜 (월)</option>
+              <option value="pv-bm2-day">서명날짜 (일)</option>
+              <option value="pv-bm-corp">④ 신청 법인명</option>
+            </select>
+          </div>
+          <div class="adj-info" id="adj-info-bm">필드를 선택하면 좌표가 표시됩니다</div>
+          <div class="adj-row">
+            <span class="sub-lbl" style="margin-top:0;white-space:nowrap">이동 간격 (px)</span>
+            <input type="number" id="adj-step-bm" class="adj-step" value="5" min="1" max="50">
+          </div>
+          <div class="adj-grid">
+            <div></div><button class="adj-dir" onclick="moveField('bm','up')">↑</button><div></div>
+            <button class="adj-dir" onclick="moveField('bm','left')">←</button>
+            <button class="adj-dir" onclick="moveField('bm','down')">↓</button>
+            <button class="adj-dir" onclick="moveField('bm','right')">→</button>
+          </div>
+          <button class="adj-save" onclick="saveMyCoords('bm')">💾 내 화면에 저장 (localStorage)</button>
+          <div class="adj-notice" id="adj-notice-bm">✅ 내 화면에 저장되었습니다!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ 신규등록신청서 입력 -->
+    <div class="tab-inputs" id="inputs-nr" style="display:none">
+      <div class="section-lbl">📄 신규등록신청서 입력</div>
+      <div class="sub-lbl">법인 선택 시 자동 입력</div>
+      <div class="ff"><label>① 법인명</label>
+        <input type="text" id="inp-nr-corp-name" placeholder="법인명" oninput="render()">
+      </div>
+      <div class="ff"><label>② 법인등록번호</label>
+        <input type="text" id="inp-nr-corp-reg" placeholder="법인등록번호" oninput="render()">
+      </div>
+      <div class="ff"><label>③ 법인 주소</label>
+        <input type="text" id="inp-nr-corp-addr" placeholder="주소" oninput="render()">
+      </div>
+      <div class="sub-lbl">직접 입력</div>
+      <div class="ff"><label>④ 전화번호</label>
+        <input type="text" id="inp-nr-phone" placeholder="예: 010-1234-5678" oninput="render()">
+      </div>
+      <div class="ff"><label>⑤ 차량 색상</label>
+        <input type="text" id="inp-nr-color" placeholder="예: 흰색" oninput="render()">
+      </div>
+      <div class="ff"><label>⑥ 신청 날짜</label>
+        <input type="date" id="inp-nr-date" oninput="render()">
+      </div>
+      <div class="sub-lbl">신청인 — 선택 시 생년월일·전화 자동 연동</div>
+      <div class="ff"><label>⑦ 신청인</label>
+        <select id="inp-nr-applicant" onchange="onApplicantChange()">
+          <option value="">-- 신청인을 선택하세요 --</option>
+        </select>
+      </div>
+      <div class="ff"><label>⑧ 신청인 생년월일</label>
+        <input type="date" id="inp-nr-birth" oninput="render()">
+      </div>
+      <div class="adj-panel">
+        <div class="section-lbl">🔧 인쇄 위치 미세 조정</div>
+        <div class="deploy-box">
+          <div class="deploy-box-title">🚀 배포용 마스터 좌표 내보내기</div>
+          <div class="deploy-btn-row">
+            <button class="btn-copy-all" onclick="copyAllCoords('nr')">📋 전체 좌표 복사</button>
+            <button class="btn-show-code" onclick="toggleDeployCode('nr')">코드 보기</button>
+          </div>
+          <div class="deploy-notice" id="deploy-notice-nr">✅ 전체 좌표가 클립보드에 복사되었습니다!</div>
+          <div class="deploy-code-wrap" id="deploy-code-wrap-nr">
+            <pre class="deploy-code-pre" id="deploy-code-nr"></pre>
+          </div>
+        </div>
+        <div class="personal-box">
+          <div class="ff"><label>조절할 필드</label>
+            <select id="adj-sel-nr" onchange="showAdjInfo('nr',this.value)">
+              <option value="pv-nr-corp-name">① 법인명</option>
+              <option value="pv-nr-corp-reg">② 법인등록번호</option>
+              <option value="pv-nr-corp-addr">③ 법인 주소</option>
+              <option value="pv-nr-phone">④ 전화번호</option>
+              <option value="pv-nr-color">⑤ 차량 색상</option>
+              <option value="pv-nr-year">⑥ 신청날짜 (년)</option>
+              <option value="pv-nr-month">⑥ 신청날짜 (월)</option>
+              <option value="pv-nr-day">⑥ 신청날짜 (일)</option>
+              <option value="pv-nr-applicant">⑦ 신청인</option>
+              <option value="pv-nr-birth">⑧ 생년월일</option>
+            </select>
+          </div>
+          <div class="adj-info" id="adj-info-nr">필드를 선택하면 좌표가 표시됩니다</div>
+          <div class="adj-row">
+            <span class="sub-lbl" style="margin-top:0;white-space:nowrap">이동 간격 (px)</span>
+            <input type="number" id="adj-step-nr" class="adj-step" value="5" min="1" max="50">
+          </div>
+          <div class="adj-grid">
+            <div></div><button class="adj-dir" onclick="moveField('nr','up')">↑</button><div></div>
+            <button class="adj-dir" onclick="moveField('nr','left')">←</button>
+            <button class="adj-dir" onclick="moveField('nr','down')">↓</button>
+            <button class="adj-dir" onclick="moveField('nr','right')">→</button>
+          </div>
+          <button class="adj-save" onclick="saveMyCoords('nr')">💾 내 화면에 저장 (localStorage)</button>
+          <div class="adj-notice" id="adj-notice-nr">✅ 내 화면에 저장되었습니다!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ④ 위임장 입력 -->
+    <div class="tab-inputs" id="inputs-poa" style="display:none">
+      <div class="section-lbl">📋 위임장 입력</div>
+      <div class="sub-lbl">위임자(법인) — 법인 선택 시 자동 입력</div>
+      <div class="ff"><label>① 법인명</label>
+        <input type="text" id="inp-poa-corp-name" placeholder="법인명" oninput="render()">
+      </div>
+      <div class="ff"><label>② 법인등록번호</label>
+        <input type="text" id="inp-poa-corp-reg" placeholder="법인등록번호" oninput="render()">
+      </div>
+      <div class="ff"><label>③ 대표자 이름</label>
+        <input type="text" id="inp-poa-ceo-name" placeholder="대표자 성명" oninput="render()">
+      </div>
+      <div class="ff"><label>④ 법인 전화번호</label>
+        <input type="text" id="inp-poa-corp-phone" placeholder="전화번호" oninput="render()">
+      </div>
+      <div class="ff"><label>⑤ 법인 주소 <small style="color:#27ae60;text-transform:none;font-size:10px">(구 기준 2줄 분할)</small></label>
+        <input type="text" id="inp-poa-corp-addr" placeholder="주소" oninput="render()">
+      </div>
+      <div class="sub-lbl">위임 사항</div>
+      <div class="ff"><label>⑥ 위임 내용</label>
+        <textarea id="inp-poa-content" rows="2" oninput="render()"></textarea>
+      </div>
+      <div class="sub-lbl">대리인 — 선택 시 자동 연동 (수정 가능)</div>
+      <div class="ff"><label>⑦ 대리인 이름</label>
+        <select id="inp-poa-delegate-sel" onchange="onDelegateChange()">
+          <option value="">-- 대리인을 선택하세요 --</option>
+        </select>
+      </div>
+      <div class="ff"><label>⑧ 주민등록번호</label>
+        <input type="text" id="inp-poa-delegate-rrn" placeholder="선택 시 자동 연동" oninput="render()">
+      </div>
+      <div class="ff"><label>⑨ 주소 <small style="color:#27ae60;text-transform:none;font-size:10px">(15자 기준 줄바꿈)</small></label>
+        <input type="text" id="inp-poa-delegate-addr" placeholder="선택 시 자동 연동" oninput="render()">
+      </div>
+      <div class="ff"><label>⑩ 전화번호</label>
+        <input type="text" id="inp-poa-delegate-phone" placeholder="선택 시 자동 연동" oninput="render()">
+      </div>
+      <div class="sub-lbl">신청 날짜</div>
+      <div class="ff"><label>⑪ 신청 날짜</label>
+        <input type="date" id="inp-poa-date" oninput="render()">
+      </div>
+      <div class="sub-lbl">하단 위임자 확인 — 자동 연동 (수정 가능)</div>
+      <div class="ff"><label>⑫ 법인명(하단)</label>
+        <input type="text" id="inp-poa-trustor-name" placeholder="① 법인명과 동일" oninput="render()">
+      </div>
+      <div class="ff"><label>⑬ 주소(하단) <small style="color:#27ae60;text-transform:none;font-size:10px">(구 기준 2줄)</small></label>
+        <input type="text" id="inp-poa-trustor-addr" placeholder="⑤ 주소와 동일" oninput="render()">
+      </div>
+      <div class="ff"><label>⑭ 대표자(하단)</label>
+        <input type="text" id="inp-poa-trustor-ceo" placeholder="③ 대표자와 동일" oninput="render()">
+      </div>
+      <div class="adj-panel">
+        <div class="section-lbl">🔧 인쇄 위치 미세 조정</div>
+        <div class="deploy-box">
+          <div class="deploy-box-title">🚀 배포용 마스터 좌표 내보내기</div>
+          <div class="deploy-btn-row">
+            <button class="btn-copy-all" onclick="copyAllCoords('poa')">📋 전체 좌표 복사</button>
+            <button class="btn-show-code" onclick="toggleDeployCode('poa')">코드 보기</button>
+          </div>
+          <div class="deploy-notice" id="deploy-notice-poa">✅ 전체 좌표가 클립보드에 복사되었습니다!</div>
+          <div class="deploy-code-wrap" id="deploy-code-wrap-poa">
+            <pre class="deploy-code-pre" id="deploy-code-poa"></pre>
+          </div>
+        </div>
+        <div class="personal-box">
+          <div class="ff"><label>조절할 필드</label>
+            <select id="adj-sel-poa" onchange="showAdjInfo('poa',this.value)">
+              <option value="pv-poa-corp-name">① 법인명</option>
+              <option value="pv-poa-corp-reg">② 법인등록번호</option>
+              <option value="pv-poa-ceo-name">③ 대표자</option>
+              <option value="pv-poa-corp-phone">④ 전화번호</option>
+              <option value="pv-poa-corp-addr">⑤ 법인 주소</option>
+              <option value="pv-poa-content">⑥ 위임 내용</option>
+              <option value="pv-poa-delegate-name">⑦ 대리인명</option>
+              <option value="pv-poa-delegate-rrn">⑧ 주민번호</option>
+              <option value="pv-poa-delegate-addr">⑨ 대리인 주소</option>
+              <option value="pv-poa-delegate-phone">⑩ 대리인 전화</option>
+              <option value="pv-poa-year">⑪ 날짜 (년)</option>
+              <option value="pv-poa-month">⑪ 날짜 (월)</option>
+              <option value="pv-poa-day">⑪ 날짜 (일)</option>
+              <option value="pv-poa-trustor-name">⑫ 법인명(하단)</option>
+              <option value="pv-poa-trustor-addr">⑬ 주소(하단)</option>
+              <option value="pv-poa-trustor-ceo">⑭ 대표자(하단)</option>
+            </select>
+          </div>
+          <div class="adj-info" id="adj-info-poa">필드를 선택하면 좌표가 표시됩니다</div>
+          <div class="adj-row">
+            <span class="sub-lbl" style="margin-top:0;white-space:nowrap">이동 간격 (px)</span>
+            <input type="number" id="adj-step-poa" class="adj-step" value="5" min="1" max="50">
+          </div>
+          <div class="adj-grid">
+            <div></div><button class="adj-dir" onclick="moveField('poa','up')">↑</button><div></div>
+            <button class="adj-dir" onclick="moveField('poa','left')">←</button>
+            <button class="adj-dir" onclick="moveField('poa','down')">↓</button>
+            <button class="adj-dir" onclick="moveField('poa','right')">→</button>
+          </div>
+          <button class="adj-save" onclick="saveMyCoords('poa')">💾 내 화면에 저장 (localStorage)</button>
+          <div class="adj-notice" id="adj-notice-poa">✅ 내 화면에 저장되었습니다!</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /panel-left -->
+
+  <!-- ================== RIGHT PANEL ================== -->
+  <div class="panel-right">
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-btn-cr"  onclick="switchTab('cr')">📄 변경등록신청서</button>
+      <button class="tab-btn"        id="tab-btn-bm"  onclick="switchTab('bm')">🏛️ 이사회의결서</button>
+      <button class="tab-btn"        id="tab-btn-nr"  onclick="switchTab('nr')">📄 신규등록신청서</button>
+      <button class="tab-btn"        id="tab-btn-poa" onclick="switchTab('poa')">📋 위임장</button>
+    </div>
+    <div class="a4-canvas">
+      <div class="print-toolbar">
+        <span class="pt-label">미리보기 : <b id="doc-label">변경등록신청서</b></span>
+        <button class="btn-print" onclick="window.print()">🖨️ 인쇄하기</button>
+      </div>
+      <div class="a4-paper" id="doc-paper">
+        <div class="paper-ph" id="paper-ph">
+          <div class="ph-icon">📄</div>
+          <p>좌측에서 법인을 선택하면<br>서류 미리보기가 표시됩니다</p>
+          <small>입력 정보가 실시간으로 반영됩니다</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app-body -->
+
+<script>
+/* ================================================================
+   COMPANY DATA
+================================================================ */
+const COMPANIES = [
+  { name:'주식회사 아이카',    biz:'503-88-01369', reg:'135811-0367798', ceo:'김영혁', addr:'경기도 수원시 권선구 수인로 43-2(서둔동)',      tel:'031-232-0707' },
+  { name:'주식회사 달카',      biz:'188-81-02156', reg:'135811-0409011', ceo:'최근자', addr:'경기도 수원시 권선구 수인로 43-2, 2층(서둔동)', tel:'031-232-0707' },
+  { name:'주식회사 렌트로',    biz:'880-86-02029', reg:'161411-0051230', ceo:'김효진', addr:'경기도 수원시 권선구 효탑로16번길 26(탑동)',     tel:'' },
+  { name:'주식회사 동행카',    biz:'359-81-02777', reg:'161411-0052197', ceo:'서동오', addr:'경기도 수원시 권선구 수인로 43-2, 1층(서둔동)', tel:'031-232-0707' },
+  { name:'서현렌트카 주식회사',biz:'886-88-00095', reg:'134811-0336249', ceo:'황대남', addr:'경기도 화성시 융건로 47-6(기안동)',             tel:'' },
+];
+
+/* ================================================================
+   USER DB  (localStorage: 'user_db_v2')
+================================================================ */
+const DEFAULT_USERS = [
+  { id:1, name:'홍길동', rrn:'850315-1******', address:'경기도 수원시 권선구 수인로 43-2(서둔동)', phone:'010-1234-5678' },
+  { id:2, name:'성춘향', rrn:'900722-2******', address:'경기도 수원시 팔달구 매산로 1(팔달동)',   phone:'010-9876-5432' },
+  { id:3, name:'임꺽정', rrn:'781105-1******', address:'경기도 화성시 융건로 47-6(기안동)',       phone:'010-5555-7777' },
+];
+let USERS=[], nextUid=1;
+function loadUsers(){
+  try{
+    const s=localStorage.getItem('user_db_v2');
+    if(s){USERS=JSON.parse(s);nextUid=USERS.reduce((m,u)=>Math.max(m,u.id),0)+1;}
+    else{USERS=JSON.parse(JSON.stringify(DEFAULT_USERS));nextUid=DEFAULT_USERS.length+1;saveUsers();}
+  }catch{USERS=JSON.parse(JSON.stringify(DEFAULT_USERS));nextUid=DEFAULT_USERS.length+1;}
+}
+function saveUsers(){localStorage.setItem('user_db_v2',JSON.stringify(USERS));}
+function maskRrn(r){
+  if(!r)return'';const c=r.replace(/\s/g,'');
+  return/^\d{6}-\d{7}$/.test(c)?c.slice(0,8)+'******':c;
+}
+function addUser(){
+  const name=gv('udb-name'),rrn=gv('udb-rrn'),address=gv('udb-address'),phone=gv('udb-phone');
+  if(!name){alert('이름을 입력해 주세요.');return;}
+  USERS.push({id:nextUid++,name,rrn:maskRrn(rrn),address,phone});
+  saveUsers();renderUsers();rebuildDropdowns();
+  sv('udb-name','');sv('udb-rrn','');sv('udb-address','');sv('udb-phone','');
+}
+function deleteUser(id){
+  if(!confirm('삭제하시겠습니까?'))return;
+  USERS=USERS.filter(u=>u.id!==id);
+  saveUsers();renderUsers();rebuildDropdowns();
+}
+function renderUsers(){
+  const list=document.getElementById('udb-list'),cnt=document.getElementById('udb-cnt');
+  if(cnt)cnt.textContent=USERS.length+'명';
+  if(!list)return;
+  if(!USERS.length){list.innerHTML='<div class="udb-empty">등록된 사용자가 없습니다.</div>';return;}
+  list.innerHTML=USERS.map(u=>`
+    <div class="udb-item">
+      <div class="udb-item-info">
+        <span class="udb-item-name">${u.name}</span>
+        <span class="udb-item-meta">${u.rrn||'—'} / ${u.phone||'—'}</span>
+      </div>
+      <button class="udb-del" onclick="deleteUser(${u.id})">✕</button>
+    </div>`).join('');
+}
+function rebuildDropdowns(){
+  [['inp-nr-applicant','-- 신청인을 선택하세요 --'],['inp-poa-delegate-sel','-- 대리인을 선택하세요 --']].forEach(([id,ph])=>{
+    const el=document.getElementById(id);if(!el)return;
+    const old=el.value;
+    el.innerHTML=`<option value="">${ph}</option>`;
+    USERS.forEach(u=>{const o=document.createElement('option');o.value=u.id;o.textContent=u.name;el.appendChild(o);});
+    if(old&&USERS.find(u=>u.id===+old))el.value=old;
+  });
+}
+function toggleUDB(){
+  const p=document.getElementById('udb-panel'),l=document.getElementById('udb-lbl');
+  const open=p.classList.toggle('open');
+  l.textContent=open?'▼ 사용자 관리 닫기':'▶ 사용자 관리 열기';
+}
+function findUser(id){return USERS.find(u=>u.id===+id)||null;}
+
+/* ================================================================
+   STATE
+================================================================ */
+let currentTab='cr', currentCompany=null, uploadedFiles=[];
+
+/* ================================================================
+   INIT
+================================================================ */
+window.addEventListener('DOMContentLoaded',()=>{
+  loadUsers();
+  loadMyCoords();
+  const t=new Date().toISOString().split('T')[0];
+  sv('inp-cr-date',t);
+  sv('inp-bm-date',t);sv('inp-bm-count','50');sv('inp-bm-date2',t);sv('inp-bm-corp-name','주식회사 아이카');
+  sv('inp-nr-date',t);
+  sv('inp-poa-date',t);sv('inp-poa-content','자동차 등록 신청 및 번호판 교부에 관한 모든 권한');
+  rebuildDropdowns();renderUsers();
+  switchTab('cr');
+});
+
+/* ================================================================
+   HELPERS
+================================================================ */
+function gv(id){const e=document.getElementById(id);return e?e.value.trim():'';}
+function sv(id,v){const e=document.getElementById(id);if(e)e.value=v;}
+function S(id,v){const e=document.getElementById(id);if(e)e.textContent=v||'';}
+function fmtDate(s){
+  if(!s)return{y:'',m:'',d:''};
+  const[y,m,d]=s.split('-');return{y,m:String(parseInt(m)),d:String(parseInt(d))};
+}
+function rrnToBirth(rrn){
+  if(!rrn)return'';const c=rrn.replace(/-/g,'').replace(/\s/g,'');
+  if(c.length<7)return'';
+  const yy=c.slice(0,2),mm=c.slice(2,4),dd=c.slice(4,6),g=parseInt(c[6]);
+  return`${ (g===1||g===2||g===5||g===6)?'19'+yy:'20'+yy }-${mm}-${dd}`;
+}
+/* 법인 주소 — 구(區) 기준 2줄 분할 */
+function splitByGu(addr){
+  if(!addr)return'';const i=addr.indexOf('구 ');
+  return i===-1?addr:addr.slice(0,i+1)+'\n'+addr.slice(i+2);
+}
+/* 대리인 주소 — 15자 기준 줄바꿈 */
+function splitByLen(addr,max=15){
+  if(!addr)return'';
+  let r='',rem=addr;
+  while(rem.length>max){r+=rem.slice(0,max)+'\n';rem=rem.slice(max);}
+  return r+rem;
+}
+
+/* ================================================================
+   COMPANY SELECT
+================================================================ */
+function onCompanyChange(){
+  const idx=document.getElementById('sel-company').value;
+  const badge=document.getElementById('co-badge');
+  if(idx===''){badge.classList.remove('on');currentCompany=null;render();return;}
+  const c=currentCompany=COMPANIES[+idx];
+  document.getElementById('co-name').textContent=c.name;
+  document.getElementById('co-biz').textContent=c.biz;
+  document.getElementById('co-reg').textContent=c.reg;
+  document.getElementById('co-ceo').textContent=c.ceo;
+  document.getElementById('co-addr').textContent=c.addr;
+  document.getElementById('co-tel').textContent=c.tel||'(미등록)';
+  badge.classList.add('on');
+  /* 변경등록신청서 */
+  sv('inp-cr-rep-name',c.ceo);sv('inp-cr-corp-reg',c.reg);
+  sv('inp-cr-corp-name',c.name);sv('inp-cr-corp-addr',c.addr);
+  /* 이사회의결서 */
+  sv('inp-bm-corp-name',c.name);
+  /* 신규등록신청서 */
+  sv('inp-nr-corp-name',c.name);sv('inp-nr-corp-reg',c.reg);sv('inp-nr-corp-addr',c.addr);
+  /* 위임장 */
+  sv('inp-poa-corp-name',c.name);sv('inp-poa-corp-reg',c.reg);
+  sv('inp-poa-ceo-name',c.ceo);sv('inp-poa-corp-phone',c.tel||'');sv('inp-poa-corp-addr',c.addr);
+  sv('inp-poa-trustor-name',c.name);sv('inp-poa-trustor-addr',c.addr);sv('inp-poa-trustor-ceo',c.ceo);
+  render();
+}
+function onApplicantChange(){
+  const u=findUser(gv('inp-nr-applicant'));if(!u){render();return;}
+  sv('inp-nr-birth',rrnToBirth(u.rrn));sv('inp-nr-phone',u.phone);render();
+}
+function onDelegateChange(){
+  const u=findUser(gv('inp-poa-delegate-sel'));if(!u){render();return;}
+  sv('inp-poa-delegate-rrn',u.rrn);sv('inp-poa-delegate-addr',u.address);sv('inp-poa-delegate-phone',u.phone);render();
+}
+
+/* ================================================================
+   TAB CONFIG
+================================================================ */
+const TABS={
+  cr: {label:'자동차대여사업 변경등록신청서',btn:'tab-btn-cr', inputs:'inputs-cr', bg:"url('change_form.png')"},
+  bm: {label:'이사회의결서',                  btn:'tab-btn-bm', inputs:'inputs-bm', bg:"url('change_form_2.png')"},
+  nr: {label:'자동차 신규등록신청서',          btn:'tab-btn-nr', inputs:'inputs-nr', bg:"url('change_form_3.png')"},
+  poa:{label:'위임장',                        btn:'tab-btn-poa',inputs:'inputs-poa',bg:"url('change_form_4.png')"},
+};
+function switchTab(tab){
+  currentTab=tab;
+  Object.keys(TABS).forEach(t=>{
+    document.getElementById(TABS[t].btn).classList.toggle('active',t===tab);
+    document.getElementById(TABS[t].inputs).style.display=t===tab?'flex':'none';
+  });
+  document.getElementById('doc-label').textContent=TABS[tab].label;
+  buildPaper(tab);/* 핵심: 탭 전환마다 종이 완전 초기화 */
+  render();
+}
+
+/* ================================================================
+   BUILD PAPER — 탭 전환 시 항상 호출, 스팬 완전 재생성
+================================================================ */
+function buildPaper(tab){
+  const paper=document.getElementById('doc-paper');
+  paper.className='a4-paper bg-mode';
+  paper.style.backgroundImage=TABS[tab].bg;
+  /* 기존 내용 완전 삭제 후 현재 탭 스팬만 생성 */
+  paper.innerHTML=Object.entries(FORM_COORDINATES[tab]).map(([id,c])=>
+    `<span class="cr-field" id="${id}" style="top:${c.top}px;left:${c.left}px;"></span>`
+  ).join('');
+}
+
+/* ================================================================
+   FORM_COORDINATES
+   ─ 입력 ID:  inp-{탭}-{필드}
+   ─ 미리보기: pv-{탭}-{필드}   (완벽 1:1 매핑)
+   ─ 793.7 × 1122.5 px 기준
+   ─ 각 탭 완전 독립 (탭간 간섭 없음)
+
+   ★ 좌표 조정 방법:
+     1. 방향키로 위치 맞춤
+     2. [📋 전체 좌표 복사] 클릭
+     3. 복사된 JSON을 클로드에게 전달
+     4. 클로드가 이 블록을 업데이트해 소스 기본값에 반영
+================================================================ */
+const FORM_COORDINATES = {
+  /* ── ① 변경등록신청서 ── */
+  cr: {
+    'pv-cr-rep-name':  {top:180, left:295},
+    'pv-cr-corp-reg':  {top:179, left:570},
+    'pv-cr-corp-name': {top:217, left:295},
+    'pv-cr-corp-addr': {top:251, left:295},
+    'pv-cr-after':     {top:321, left:363},
+    'pv-cr-reason':    {top:364, left:181},
+    'pv-cr-year':      {top:504, left:346},
+    'pv-cr-month':     {top:504, left:395},
+    'pv-cr-day':       {top:504, left:422},
+    'pv-cr-sig':       {top:556, left:450},
+  },
+  /* ── ② 이사회의결서 ── */
+  bm: {
+    'pv-bm-year':  {top:227, left:195},
+    'pv-bm-month': {top:226, left:255},
+    'pv-bm-day':   {top:226, left:286},
+    'pv-bm-count': {top:400, left:202},
+    'pv-bm2-year': {top:673, left:336},
+    'pv-bm2-month':{top:673, left:382},
+    'pv-bm2-day':  {top:673, left:404},
+    'pv-bm-corp':  {top:714, left:340},
+  },
+  /* ── ③ 신규등록신청서 ── */
+  nr: {
+    'pv-nr-corp-name': {top:225, left:165},
+    'pv-nr-corp-reg':  {top:224, left:443},
+    'pv-nr-corp-addr': {top:279, left:164},
+    'pv-nr-phone':     {top:329, left:446},
+    'pv-nr-color':     {top:380, left:560},
+    'pv-nr-year':      {top:673, left:599},
+    'pv-nr-month':     {top:673, left:653},
+    'pv-nr-day':       {top:674, left:685},
+    'pv-nr-applicant': {top:723, left:388},
+    'pv-nr-birth':     {top:755, left:389},
+  },
+  /* ── ④ 위임장 ── */
+  poa: {
+    'pv-poa-corp-name':     {top:173, left:250},
+    'pv-poa-corp-reg':      {top:171, left:548},
+    'pv-poa-ceo-name':      {top:221, left:250},
+    'pv-poa-corp-phone':    {top:220, left:548},
+    'pv-poa-corp-addr':     {top:260, left:250},
+    'pv-poa-content':       {top:330, left:190},
+    'pv-poa-delegate-name': {top:388, left:255},
+    'pv-poa-delegate-rrn':  {top:388, left:545},
+    'pv-poa-delegate-addr': {top:423, left:253},
+    'pv-poa-delegate-phone':{top:438, left:545},
+    'pv-poa-year':          {top:673, left:341},
+    'pv-poa-month':         {top:672, left:392},
+    'pv-poa-day':           {top:672, left:420},
+    'pv-poa-trustor-name':  {top:715, left:503},
+    'pv-poa-trustor-addr':  {top:736, left:504},
+    'pv-poa-trustor-ceo':   {top:822, left:508},
+  },
+};
+
+/* ================================================================
+   RENDER DISPATCHER
+================================================================ */
+function render(){
+  switch(currentTab){
+    case 'cr':  renderCR();  break;
+    case 'bm':  renderBM();  break;
+    case 'nr':  renderNR();  break;
+    case 'poa': renderPOA(); break;
+  }
+}
+
+/* ── ① 변경등록신청서 ── */
+function renderCR(){
+  S('pv-cr-rep-name',  gv('inp-cr-rep-name'));
+  S('pv-cr-corp-reg',  gv('inp-cr-corp-reg'));   /* 우측 칸 — 법인등록번호 */
+  S('pv-cr-corp-name', gv('inp-cr-corp-name'));
+  S('pv-cr-corp-addr', gv('inp-cr-corp-addr'));
+  S('pv-cr-after',     gv('inp-cr-after'));
+  S('pv-cr-reason',    gv('inp-cr-reason'));
+  const d=fmtDate(gv('inp-cr-date'));
+  S('pv-cr-year',d.y);S('pv-cr-month',d.m);S('pv-cr-day',d.d);
+  S('pv-cr-sig',gv('inp-cr-corp-name')||(currentCompany?currentCompany.name:''));
+}
+
+/* ── ② 이사회의결서 ── */
+function renderBM(){
+  const d1=fmtDate(gv('inp-bm-date'));
+  S('pv-bm-year',d1.y);S('pv-bm-month',d1.m);S('pv-bm-day',d1.d);
+  S('pv-bm-count',gv('inp-bm-count'));
+  const d2=fmtDate(gv('inp-bm-date2'));
+  S('pv-bm2-year',d2.y);S('pv-bm2-month',d2.m);S('pv-bm2-day',d2.d);
+  S('pv-bm-corp',gv('inp-bm-corp-name')||(currentCompany?currentCompany.name:''));
+}
+
+/* ── ③ 신규등록신청서 ── */
+function renderNR(){
+  S('pv-nr-corp-name',gv('inp-nr-corp-name'));
+  S('pv-nr-corp-reg', gv('inp-nr-corp-reg'));
+  S('pv-nr-corp-addr',gv('inp-nr-corp-addr'));
+  S('pv-nr-phone',    gv('inp-nr-phone'));
+  S('pv-nr-color',    gv('inp-nr-color'));
+  const d=fmtDate(gv('inp-nr-date'));
+  S('pv-nr-year',d.y);S('pv-nr-month',d.m);S('pv-nr-day',d.d);
+  const u=findUser(gv('inp-nr-applicant'));
+  S('pv-nr-applicant',u?u.name:'');
+  S('pv-nr-birth',gv('inp-nr-birth'));
+}
+
+/* ── ④ 위임장 ── */
+function renderPOA(){
+  S('pv-poa-corp-name',    gv('inp-poa-corp-name'));
+  S('pv-poa-corp-reg',     gv('inp-poa-corp-reg'));
+  S('pv-poa-ceo-name',     gv('inp-poa-ceo-name'));
+  S('pv-poa-corp-phone',   gv('inp-poa-corp-phone'));
+  S('pv-poa-corp-addr',    splitByGu(gv('inp-poa-corp-addr')));
+  S('pv-poa-content',      gv('inp-poa-content'));
+  const u=findUser(gv('inp-poa-delegate-sel'));
+  S('pv-poa-delegate-name',  u?u.name:'');
+  S('pv-poa-delegate-rrn',   gv('inp-poa-delegate-rrn'));
+  S('pv-poa-delegate-addr',  splitByLen(gv('inp-poa-delegate-addr')));
+  S('pv-poa-delegate-phone', gv('inp-poa-delegate-phone'));
+  const d=fmtDate(gv('inp-poa-date'));
+  S('pv-poa-year',d.y);S('pv-poa-month',d.m);S('pv-poa-day',d.d);
+  S('pv-poa-trustor-name',gv('inp-poa-trustor-name')||gv('inp-poa-corp-name'));
+  S('pv-poa-trustor-addr',splitByGu(gv('inp-poa-trustor-addr')||gv('inp-poa-corp-addr')));
+  S('pv-poa-trustor-ceo', gv('inp-poa-trustor-ceo')||gv('inp-poa-ceo-name'));
+}
+
+/* ================================================================
+   ADJUSTMENT — 좌표 조정 공통 함수
+================================================================ */
+function showAdjInfo(tab,id){
+  const c=FORM_COORDINATES[tab]?.[id];
+  const el=document.getElementById('adj-info-'+tab);
+  if(c&&el)el.textContent=`[${id}]  top: ${c.top}px  /  left: ${c.left}px`;
+}
+function moveField(tab,dir){
+  const id=gv('adj-sel-'+tab);
+  const c=FORM_COORDINATES[tab]?.[id];if(!c)return;
+  const step=Math.max(1,parseInt(document.getElementById('adj-step-'+tab).value)||1);
+  if(dir==='up')   c.top -=step;
+  if(dir==='down') c.top +=step;
+  if(dir==='left') c.left-=step;
+  if(dir==='right')c.left+=step;
+  const el=document.getElementById(id);
+  if(el){el.style.top=c.top+'px';el.style.left=c.left+'px';}
+  showAdjInfo(tab,id);
+}
+
+/* ================================================================
+   [💾 내 화면에 저장] — localStorage (개인 브라우저에만 반영)
+================================================================ */
+function saveMyCoords(tab){
+  /* DOM 위치를 FORM_COORDINATES에 동기화 */
+  syncDomToCoords(tab);
+  const stored=JSON.parse(localStorage.getItem('my_coords_v2')||'{}');
+  stored[tab]=FORM_COORDINATES[tab];
+  localStorage.setItem('my_coords_v2',JSON.stringify(stored));
+  const n=document.getElementById('adj-notice-'+tab);
+  n.style.display='block';setTimeout(()=>{n.style.display='none';},2500);
+}
+function loadMyCoords(){
+  try{
+    const s=localStorage.getItem('my_coords_v2');
+    if(s){
+      const p=JSON.parse(s);
+      Object.keys(p).forEach(t=>{if(FORM_COORDINATES[t])Object.assign(FORM_COORDINATES[t],p[t]);});
+    }
+  }catch(e){console.warn('좌표 복원 실패',e);}
+}
+
+/* ================================================================
+   [📋 전체 좌표 복사] — 배포용 마스터 좌표 내보내기
+   ① 현재 DOM 위치 → FORM_COORDINATES 동기화
+   ② 전체 JSON 텍스트 → 클립보드 복사
+   ③ 클로드에게 붙여넣기 → 소스 기본값에 반영
+================================================================ */
+function syncDomToCoords(tab){
+  Object.keys(FORM_COORDINATES[tab]).forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    const top=parseInt(el.style.top),left=parseInt(el.style.left);
+    if(!isNaN(top)) FORM_COORDINATES[tab][id].top =top;
+    if(!isNaN(left))FORM_COORDINATES[tab][id].left=left;
+  });
+}
+function syncAllDomToCoords(){
+  Object.keys(FORM_COORDINATES).forEach(tab=>syncDomToCoords(tab));
+}
+function buildCoordsCode(){
+  return `const FORM_COORDINATES = ${JSON.stringify(FORM_COORDINATES,null,2)};`;
+}
+function copyAllCoords(triggerTab){
+  syncAllDomToCoords();
+  const code=buildCoordsCode();
+  /* 코드 표시 업데이트 */
+  Object.keys(TABS).forEach(t=>{
+    const pre=document.getElementById('deploy-code-'+t);
+    if(pre)pre.textContent=code;
+  });
+  /* 클립보드 복사 */
+  const doNotice=(tab)=>{
+    const n=document.getElementById('deploy-notice-'+tab);
+    if(n){n.style.display='block';setTimeout(()=>{n.style.display='none';},3000);}
+  };
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(code)
+      .then(()=>doNotice(triggerTab))
+      .catch(()=>{fbCopy(code);doNotice(triggerTab);});
+  }else{fbCopy(code);doNotice(triggerTab);}
+}
+function toggleDeployCode(tab){
+  const wrap=document.getElementById('deploy-code-wrap-'+tab);
+  if(!wrap)return;
+  const visible=wrap.style.display==='flex';
+  wrap.style.display=visible?'none':'flex';
+  if(!visible){
+    /* 표시 시 최신 좌표로 갱신 */
+    syncAllDomToCoords();
+    const pre=document.getElementById('deploy-code-'+tab);
+    if(pre)pre.textContent=buildCoordsCode();
+  }
+}
+function fbCopy(text){
+  const ta=document.createElement('textarea');ta.value=text;
+  ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');}catch{}
+  document.body.removeChild(ta);
+}
+
+/* ================================================================
+   FILE UPLOAD
+================================================================ */
+function onDragOver(e){e.preventDefault();document.getElementById('drop-zone').classList.add('drag-over');}
+function onDragLeave(e){document.getElementById('drop-zone').classList.remove('drag-over');}
+function onDrop(e){
+  e.preventDefault();document.getElementById('drop-zone').classList.remove('drag-over');
+  addFiles(Array.from(e.dataTransfer.files));
+}
+function onFileSelect(e){addFiles(Array.from(e.target.files));e.target.value='';}
+function addFiles(files){
+  files.forEach(f=>{if(!uploadedFiles.find(u=>u.name===f.name&&u.size===f.size))uploadedFiles.push(f);});
+  renderFiles();
+}
+function removeFile(i){uploadedFiles.splice(i,1);renderFiles();}
+function renderFiles(){
+  document.getElementById('file-list').innerHTML=uploadedFiles.map((f,i)=>`
+    <div class="file-item">
+      <span>📎</span>
+      <span class="fi-name">${f.name}</span>
+      <span style="color:var(--muted);font-size:11px">${(f.size/1024).toFixed(0)}KB</span>
+      <span class="fi-del" onclick="removeFile(${i})">✕</span>
+    </div>`).join('');
+}
+</script>
+</body>
+</html>
