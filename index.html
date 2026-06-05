@@ -297,6 +297,8 @@ body{font-family:var(--font);font-size:13px;color:var(--text);height:100vh;overf
   white-space:pre-wrap;pointer-events:none;
   line-height:1.35;max-width:340px;
 }
+/* 글자 크기를 바꾸려면 아래 font-size 숫자만 수정하세요 */
+.cr-field-large{font-size:20px;font-weight:bold;}
 
 /* ===== PRINT ===== */
 @media print{
@@ -538,6 +540,9 @@ body{font-family:var(--font);font-size:13px;color:var(--text);height:100vh;overf
     <!-- ③ 신규등록신청서 입력 -->
     <div class="tab-inputs" id="inputs-nr" style="display:none">
       <div class="section-lbl">📄 신규등록신청서(등록소) 입력</div>
+      <div class="ff"><label>호/필름/비봉인</label>
+        <input type="text" id="inp-nr-film" placeholder="예: 호 123, 필름 없음" oninput="render()">
+      </div>
       <div class="sub-lbl">법인 선택 시 자동 입력</div>
       <div class="ff"><label>① 법인명</label>
         <input type="text" id="inp-nr-corp-name" placeholder="법인명" oninput="render()">
@@ -583,6 +588,7 @@ body{font-family:var(--font);font-size:13px;color:var(--text);height:100vh;overf
         <div class="personal-box">
           <div class="ff"><label>조절할 필드</label>
             <select id="adj-sel-nr" onchange="showAdjInfo('nr',this.value)">
+              <option value="pv-nr-film">호/필름/비봉인</option>
               <option value="pv-nr-corp-name">① 법인명</option>
               <option value="pv-nr-corp-reg">② 법인등록번호</option>
               <option value="pv-nr-corp-addr">③ 법인 주소</option>
@@ -931,8 +937,9 @@ function buildPaper(tab){
   paper.className='a4-paper bg-mode';
   paper.style.backgroundImage=TABS[tab].bg;
   /* 기존 내용 완전 삭제 후 현재 탭 스팬만 생성 */
+  const LARGE_FIELDS=new Set(['pv-nr-film']);
   paper.innerHTML=Object.entries(FORM_COORDINATES[tab]).map(([id,c])=>
-    `<span class="cr-field" id="${id}" style="top:${c.top}px;left:${c.left}px;"></span>`
+    `<span class="cr-field${LARGE_FIELDS.has(id)?' cr-field-large':''}" id="${id}" style="top:${c.top}px;left:${c.left}px;"></span>`
   ).join('');
 }
 
@@ -969,13 +976,14 @@ const FORM_COORDINATES = {
     'pv-bm-month': {top:226, left:255},
     'pv-bm-day':   {top:226, left:286},
     'pv-bm-count': {top:400, left:172},
-    'pv-bm2-year': {top:691, left:336},
-    'pv-bm2-month':{top:691, left:382},
-    'pv-bm2-day':  {top:691, left:404},
+    'pv-bm2-year': {top:673, left:336},
+    'pv-bm2-month':{top:673, left:382},
+    'pv-bm2-day':  {top:673, left:404},
     'pv-bm-corp':  {top:714, left:340},
   },
   /* ── ③ 신규등록신청서 ── */
   nr: {
+    'pv-nr-film':      {top:40, left:325},
     'pv-nr-corp-name': {top:225, left:165},
     'pv-nr-corp-reg':  {top:224, left:443},
     'pv-nr-corp-addr': {top:279, left:164},
@@ -1045,6 +1053,7 @@ function renderBM(){
 
 /* ── ③ 신규등록신청서 ── */
 function renderNR(){
+  S('pv-nr-film',     gv('inp-nr-film'));
   S('pv-nr-corp-name',gv('inp-nr-corp-name'));
   S('pv-nr-corp-reg', gv('inp-nr-corp-reg'));
   S('pv-nr-corp-addr',gv('inp-nr-corp-addr'));
