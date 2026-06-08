@@ -565,9 +565,9 @@ body{font-family:var(--font);font-size:13px;color:var(--text);height:100vh;overf
       </div>
 
       <!-- ★ 신청인 자동 연동 영역 ★ -->
-      <div class="sub-lbl">신청인 — 선택 시 이름·생년월일·전화 자동 연동 (수동 수정 가능)</div>
+      <div class="sub-lbl">신청인 — [신청인/대리인 등록]에서 선택 시 자동 연동</div>
 
-      <!-- 드롭박스: 선택하면 아래 이름 필드들이 자동으로 채워집니다 -->
+      <!-- 드롭박스: [신청인/대리인 등록] 명단에서 선택 -->
       <div class="ff">
         <label>⑦ 신청인 선택</label>
         <select id="inp-nr-applicant" onchange="onApplicantChange()">
@@ -575,12 +575,12 @@ body{font-family:var(--font);font-size:13px;color:var(--text);height:100vh;overf
         </select>
       </div>
 
-      <!-- 신청인 이름: 드롭박스 선택 시 자동 입력, 직접 수정도 가능 -->
+      <!-- 신청인 이름 1: 서식의 [신청인] 성명 칸 -->
       <div class="ff">
         <label>
           신청인 이름
           <small style="color:#27ae60;text-transform:none;font-size:10px;font-weight:400">
-            (선택 시 자동 입력 · 수동 수정 가능)
+            (서식 [신청인] 성명 칸 · 선택 시 자동 입력 · 수동 수정 가능)
           </small>
         </label>
         <input type="text" id="inp-nr-applicant-name"
@@ -588,16 +588,16 @@ body{font-family:var(--font);font-size:13px;color:var(--text);height:100vh;overf
                oninput="render()">
       </div>
 
-      <!-- 신청인 이름 2: 서류에 성명이 두 곳 이상 필요할 경우 활용 -->
+      <!-- 신청인 이름 2: 서식의 [신청인(대표자)] 칸 — 동일 직원명 -->
       <div class="ff">
         <label>
-          신청인 이름 2
+          신청인(대표자) 이름
           <small style="color:#27ae60;text-transform:none;font-size:10px;font-weight:400">
-            (선택 시 자동 입력 · 필요 시 별도 수정)
+            (서식 [신청인(대표자)] 칸 · 선택 시 자동 입력 · 수동 수정 가능)
           </small>
         </label>
         <input type="text" id="inp-nr-applicant-name2"
-               placeholder="신청인 성명 (추가 인쇄용)"
+               placeholder="신청인(대표자) 성명"
                oninput="render()">
       </div>
 
@@ -795,38 +795,9 @@ const COMPANIES = [
 ];
 
 /* ================================================================
-   NR_APPLICANTS — 신규등록신청서(등록소) 신청인 매핑 데이터
-   ─────────────────────────────────────────────────────────────
-   ▶ 드롭박스에 표시할 신청인을 이 배열에 정의합니다.
-   ▶ 각 항목 구조:
-       value  : 드롭박스 option value (고유한 영문 식별자 권장)
-       name   : 인쇄용 신청인 성명 → "신청인 이름" 필드에 자동 입력
-       name2  : 두 번째 이름 인쇄용 → "신청인 이름 2" 필드에 자동 입력
-                (보통 name과 동일하게 두되, 다른 표기가 필요하면 별도 지정)
-       birth  : 생년월일 'YYYY-MM-DD' 형식 → 생년월일 필드에 자동 입력
-                (빈 문자열 '' 이면 자동 입력 생략)
-       phone  : 전화번호 → 전화번호 필드에 자동 입력
-                (빈 문자열 '' 이면 자동 입력 생략)
-   ─────────────────────────────────────────────────────────────
-   ▶ 신청인 추가 시: 아래 배열에 한 줄 추가하세요.
-       { value: '고유키', name: '이름', name2: '이름', birth: 'YYYY-MM-DD', phone: '010-0000-0000' },
-   ▶ 신청인 수정 시: 해당 항목의 값을 직접 변경하세요.
-   ▶ 신청인 삭제 시: 해당 줄을 통째로 제거하세요.
-================================================================ */
-const NR_APPLICANTS = [
-  { value: 'kim_yh',   name: '김영혁', name2: '김영혁', birth: '1975-03-15', phone: '031-232-0707' },
-  { value: 'choi_gj',  name: '최근자', name2: '최근자', birth: '1968-07-22', phone: '031-232-0707' },
-  { value: 'kim_hj',   name: '김효진', name2: '김효진', birth: '1982-05-10', phone: '' },
-  { value: 'seo_do',   name: '서동오', name2: '서동오', birth: '1980-11-05', phone: '031-232-0707' },
-  { value: 'hwang_dn', name: '황대남', name2: '황대남', birth: '1970-08-15', phone: '' },
-  // ▶ 아래에 신청인을 추가하세요:
-  // { value: '고유키', name: '이름', name2: '이름', birth: 'YYYY-MM-DD', phone: '010-0000-0000' },
-];
-
-/* ================================================================
    USER DB  (localStorage: 'user_db_v2')
-   ─ 위임장의 대리인 드롭박스에 사용됩니다.
-   ─ 신규등록신청서 신청인은 위 NR_APPLICANTS를 사용합니다.
+   ─ 신규등록신청서 신청인 드롭박스 및 위임장 대리인 드롭박스에 공통 사용.
+   ─ 좌측 패널 [신청인/대리인 등록]에서 직원을 추가·삭제할 수 있습니다.
 ================================================================ */
 const DEFAULT_USERS = [
   { id:1, name:'홍길동', rrn:'850315-1******', address:'경기도 수원시 권선구 수인로 43-2(서둔동)', phone:'010-1234-5678' },
@@ -875,38 +846,21 @@ function renderUsers(){
 
 /* ================================================================
    REBUILD DROPDOWNS
-   ─ 신규등록신청서 신청인: NR_APPLICANTS 정적 데이터 사용
-   ─ 위임장 대리인: USERS DB 동적 데이터 사용
+   ─ 신규등록신청서 신청인 드롭박스: USERS DB 사용
+   ─ 위임장 대리인 드롭박스: USERS DB 사용 (공통)
 ================================================================ */
 function rebuildDropdowns(){
-  /* ① 신규등록신청서 신청인 드롭박스 — NR_APPLICANTS에서 생성 */
-  const nrSel = document.getElementById('inp-nr-applicant');
-  if(nrSel){
-    const prev = nrSel.value;
-    nrSel.innerHTML = '<option value="">-- 신청인을 선택하세요 --</option>';
-    NR_APPLICANTS.forEach(a => {
-      const o = document.createElement('option');
-      o.value = a.value;
-      o.textContent = a.name;
-      nrSel.appendChild(o);
+  [['inp-nr-applicant','-- 신청인을 선택하세요 --'],
+   ['inp-poa-delegate-sel','-- 대리인을 선택하세요 --']].forEach(([id,ph])=>{
+    const el=document.getElementById(id);if(!el)return;
+    const old=el.value;
+    el.innerHTML=`<option value="">${ph}</option>`;
+    USERS.forEach(u=>{
+      const o=document.createElement('option');
+      o.value=u.id; o.textContent=u.name; el.appendChild(o);
     });
-    /* 이전에 선택된 항목이 아직 목록에 있으면 유지 */
-    if(prev && NR_APPLICANTS.find(a => a.value === prev)) nrSel.value = prev;
-  }
-
-  /* ② 위임장 대리인 드롭박스 — USERS DB에서 생성 */
-  const poaSel = document.getElementById('inp-poa-delegate-sel');
-  if(poaSel){
-    const prev = poaSel.value;
-    poaSel.innerHTML = '<option value="">-- 대리인을 선택하세요 --</option>';
-    USERS.forEach(u => {
-      const o = document.createElement('option');
-      o.value = u.id;
-      o.textContent = u.name;
-      poaSel.appendChild(o);
-    });
-    if(prev && USERS.find(u => u.id === +prev)) poaSel.value = prev;
-  }
+    if(old&&USERS.find(u=>u.id===+old))el.value=old;
+  });
 }
 
 function toggleUDB(){
@@ -996,37 +950,33 @@ function onCompanyChange(){
 
 /* ================================================================
    APPLICANT CHANGE — 신규등록신청서 신청인 드롭박스 연동
-   ─ NR_APPLICANTS 배열에서 선택된 신청인 정보를 찾아
-     아래 입력 필드들을 자동으로 채웁니다:
-       · 신청인 이름   (inp-nr-applicant-name)
-       · 신청인 이름 2 (inp-nr-applicant-name2)
-       · 생년월일      (inp-nr-birth)
-       · 전화번호      (inp-nr-phone)
-   ─ 자동 입력 후에도 사용자가 각 필드를 직접 수정할 수 있습니다.
+   ─────────────────────────────────────────────────────────────
+   매핑 규칙 (실무 서식 기준):
+     · [신청인 이름 1] → 선택한 직원 이름  (서식 [신청인] 성명 칸)
+     · [신청인 이름 2] → 동일 직원 이름    (서식 [신청인(대표자)] 칸)
+     · [생년월일]      → 주민등록번호에서 자동 변환
+     · [전화번호]      → 등록된 연락처
+   ─ 데이터 출처: 좌측 패널 [신청인/대리인 등록] USERS DB
+   ─ 자동 입력 후 수동 수정 가능
 ================================================================ */
 function onApplicantChange(){
-  const val = gv('inp-nr-applicant');
+  const u = findUser(gv('inp-nr-applicant'));
   /* 선택 해제 시 이름 필드 초기화 */
-  if(!val){
+  if(!u){
     sv('inp-nr-applicant-name', '');
     sv('inp-nr-applicant-name2', '');
     render();
     return;
   }
-  /* NR_APPLICANTS에서 선택된 항목 검색 */
-  const p = NR_APPLICANTS.find(a => a.value === val) || null;
-  if(!p){ render(); return; }
-
-  /* 이름 필드 자동 입력 */
-  sv('inp-nr-applicant-name',  p.name);
-  sv('inp-nr-applicant-name2', p.name2 || p.name);
-
-  /* 생년월일: 값이 있을 때만 덮어씁니다 */
-  if(p.birth) sv('inp-nr-birth', p.birth);
-
-  /* 전화번호: 값이 있을 때만 덮어씁니다 */
-  if(p.phone) sv('inp-nr-phone', p.phone);
-
+  /* 이름 1 = 직원명 (서식 [신청인] 성명 칸) */
+  sv('inp-nr-applicant-name', u.name);
+  /* 이름 2 = 동일 직원명 (서식 [신청인(대표자)] 칸 — 법인 대표자 아님) */
+  sv('inp-nr-applicant-name2', u.name);
+  /* 생년월일: 주민등록번호에서 자동 변환 */
+  const birth = rrnToBirth(u.rrn);
+  if(birth) sv('inp-nr-birth', birth);
+  /* 전화번호 */
+  if(u.phone) sv('inp-nr-phone', u.phone);
   render();
 }
 
@@ -1121,9 +1071,9 @@ const FORM_COORDINATES = {
     'pv-nr-day':        {top:674, left:685},
     /* 신청인 이름 — "신청인 이름" 입력 필드와 연동 */
     'pv-nr-applicant':  {top:723, left:388},
-    /* 신청인 이름 2 — "신청인 이름 2" 입력 필드와 연동 (위치는 미세조정으로 맞춰주세요) */
-    'pv-nr-applicant2': {top:757, left:388},
-    'pv-nr-birth':      {top:790, left:389},
+    /* 신청인 이름 2 — "신청인 이름 2" 입력 필드와 연동 */
+    'pv-nr-applicant2': {top:942, left:498},
+    'pv-nr-birth':      {top:755, left:389},
   },
   /* ── ④ 위임장 ── */
   poa: {
