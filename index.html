@@ -352,6 +352,7 @@ body{font-family:var(--font);font-size:13px;color:var(--text);height:100vh;overf
     </div>
 
     <!-- 법인 선택 -->
+    <!-- ※ 이 드롭박스는 기존 5개 법인만 표시됩니다. 시흥은 아래 사용본거지 전용 드롭박스에서 선택하세요. -->
     <div>
       <div class="section-lbl">🏢 법인 선택</div>
       <div class="ff">
@@ -553,6 +554,24 @@ body{font-family:var(--font);font-size:13px;color:var(--text);height:100vh;overf
       <div class="ff"><label>③ 법인 주소</label>
         <input type="text" id="inp-nr-corp-addr" placeholder="주소" oninput="render()">
       </div>
+
+      <!-- ★ 사용본거지 전용 영역 ★ 상단 법인 드롭박스와 완전히 분리 — 사용본거지 주소 칸만 변경 -->
+      <div class="sub-lbl">사용본거지 — 영업소 선택 시 주소만 변경</div>
+      <!-- 사용본거지 전용 드롭박스: [기본(법인 주소)] 또는 영업소 선택 -->
+      <div class="ff">
+        <label>사용본거지 선택 <small style="color:#27ae60;text-transform:none;font-size:10px;font-weight:400">(아래 주소 칸만 바뀝니다)</small></label>
+        <select id="sel-nr-homebase" onchange="onHomebaseChange()">
+          <option value="">기본(법인 주소)</option>
+          <!-- ↓ 영업소 추가 시 아래에 <option value="지역명">표시명</option> 형태로 추가 -->
+          <option value="시흥">시흥 영업소</option>
+        </select>
+      </div>
+      <!-- 실제 서식에 출력되는 사용본거지 주소 -->
+      <div class="ff">
+        <label>사용본거지 주소 <small style="color:#27ae60;text-transform:none;font-size:10px;font-weight:400">(직접 수정 가능)</small></label>
+        <input type="text" id="inp-nr-homebase" placeholder="사용본거지 주소" oninput="render()">
+      </div>
+
       <div class="sub-lbl">직접 입력</div>
       <div class="ff"><label>④ 전화번호</label>
         <input type="text" id="inp-nr-phone" placeholder="예: 010-1234-5678" oninput="render()">
@@ -625,6 +644,7 @@ body{font-family:var(--font);font-size:13px;color:var(--text);height:100vh;overf
               <option value="pv-nr-corp-name">① 법인명</option>
               <option value="pv-nr-corp-reg">② 법인등록번호</option>
               <option value="pv-nr-corp-addr">③ 법인 주소</option>
+              <option value="pv-nr-homebase">사용본거지 주소</option>
               <option value="pv-nr-phone">④ 전화번호</option>
               <option value="pv-nr-color">⑤ 차량 색상</option>
               <option value="pv-nr-year">⑥ 신청날짜 (년)</option>
@@ -795,6 +815,23 @@ const COMPANIES = [
 ];
 
 /* ================================================================
+   사용본거지 전용 영업소 주소 목록
+   ─────────────────────────────────────────────────────────────
+   ★ 주소 추가 방법:
+     1. 아래 객체에 새 항목 추가: '지역명': '전체 주소'
+     2. HTML의 <select id="sel-nr-homebase"> 안에
+        <option value="지역명">지역명 영업소</option> 추가
+   ─ 현재 등록된 영업소: 시흥
+================================================================ */
+const HOMEBASE_ADDRESSES = {
+  '시흥': '경기도 시흥시 거북섬둘레길 4, 4층 4-1',
+  /* 향후 추가 예시:
+  '성남': '경기도 성남시 분당구 ...',
+  '인천': '인천광역시 ...',
+  */
+};
+
+/* ================================================================
    USER DB  (localStorage: 'user_db_v2')
    ─ 신규등록신청서 신청인 드롭박스 및 위임장 대리인 드롭박스에 공통 사용.
    ─ 좌측 패널 [신청인/대리인 등록]에서 직원을 추가·삭제할 수 있습니다.
@@ -921,6 +958,9 @@ function splitByLen(addr,max=15){
 
 /* ================================================================
    COMPANY SELECT
+   ─ 상단 법인 드롭박스는 기존 5개 법인만 담당합니다.
+   ─ 사용본거지는 건드리지 않되, 사용본거지 전용 드롭박스가
+     [기본(법인 주소)]로 설정된 경우에만 법인 주소를 동기화합니다.
 ================================================================ */
 function onCompanyChange(){
   const idx=document.getElementById('sel-company').value;
@@ -941,10 +981,35 @@ function onCompanyChange(){
   sv('inp-bm-corp-name',c.name);
   /* 신규등록신청서 */
   sv('inp-nr-corp-name',c.name);sv('inp-nr-corp-reg',c.reg);sv('inp-nr-corp-addr',c.addr);
+  /* 사용본거지: 전용 드롭박스가 [기본(법인 주소)]인 경우에만 법인 주소로 동기화 */
+  const homebaseSel=document.getElementById('sel-nr-homebase');
+  if(!homebaseSel||homebaseSel.value===''){
+    sv('inp-nr-homebase',c.addr);
+  }
   /* 위임장 */
   sv('inp-poa-corp-name',c.name);sv('inp-poa-corp-reg',c.reg);
   sv('inp-poa-ceo-name',c.ceo);sv('inp-poa-corp-phone',c.tel||'');sv('inp-poa-corp-addr',c.addr);
   sv('inp-poa-trustor-name',c.name);sv('inp-poa-trustor-addr',c.addr);sv('inp-poa-trustor-ceo',c.ceo);
+  render();
+}
+
+/* ================================================================
+   HOMEBASE CHANGE — 사용본거지 전용 드롭박스 연동
+   ─────────────────────────────────────────────────────────────
+   영향 범위: 오직 inp-nr-homebase (사용본거지 주소 칸) 하나만 변경.
+   법인명·대표자·등록번호 등 다른 필드는 절대 변경하지 않습니다.
+   ─ [기본(법인 주소)] 선택 시 → 현재 선택된 법인의 주소로 복원
+   ─ [시흥 영업소] 선택 시    → HOMEBASE_ADDRESSES['시흥'] 주소로 변경
+================================================================ */
+function onHomebaseChange(){
+  const sel=document.getElementById('sel-nr-homebase').value;
+  if(sel===''){
+    /* 기본(법인 주소): 현재 법인이 선택되어 있으면 그 주소, 아니면 빈칸 */
+    sv('inp-nr-homebase', currentCompany?currentCompany.addr:'');
+  }else{
+    /* 영업소 선택: HOMEBASE_ADDRESSES에서 주소 조회 */
+    sv('inp-nr-homebase', HOMEBASE_ADDRESSES[sel]||'');
+  }
   render();
 }
 
@@ -1064,6 +1129,8 @@ const FORM_COORDINATES = {
     'pv-nr-corp-name':  {top:225, left:165},
     'pv-nr-corp-reg':   {top:224, left:443},
     'pv-nr-corp-addr':  {top:279, left:164},
+    /* 사용본거지 주소 — 서식의 사용본거지 칸 위치 (미세 조정 패널로 조절 가능) */
+    'pv-nr-homebase':   {top:475, left:162},
     'pv-nr-phone':      {top:329, left:446},
     'pv-nr-color':      {top:380, left:560},
     'pv-nr-year':       {top:673, left:599},
@@ -1137,6 +1204,8 @@ function renderNR(){
   S('pv-nr-corp-name', gv('inp-nr-corp-name'));
   S('pv-nr-corp-reg',  gv('inp-nr-corp-reg'));
   S('pv-nr-corp-addr', gv('inp-nr-corp-addr'));
+  /* 사용본거지: inp-nr-homebase 값을 그대로 출력 */
+  S('pv-nr-homebase',  gv('inp-nr-homebase'));
   S('pv-nr-phone',     gv('inp-nr-phone'));
   S('pv-nr-color',     gv('inp-nr-color'));
   const d=fmtDate(gv('inp-nr-date'));
