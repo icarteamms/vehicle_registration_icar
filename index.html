@@ -554,6 +554,9 @@ body{font-family:var(--font);font-size:13px;color:var(--text);height:100vh;overf
       <div class="ff"><label>③ 법인 주소</label>
         <input type="text" id="inp-nr-corp-addr" placeholder="주소" oninput="render()">
       </div>
+      <div class="ff"><label>④ 전자우편</label>
+        <input type="text" id="inp-nr-email" placeholder="이메일 주소" oninput="render()">
+      </div>
 
       <!-- ★ 사용본거지 전용 영역 ★ 상단 법인 드롭박스와 완전히 분리 — 사용본거지 주소 칸만 변경 -->
       <div class="sub-lbl">사용본거지 — 영업소 선택 시 주소만 변경</div>
@@ -644,6 +647,7 @@ body{font-family:var(--font);font-size:13px;color:var(--text);height:100vh;overf
               <option value="pv-nr-corp-name">① 법인명</option>
               <option value="pv-nr-corp-reg">② 법인등록번호</option>
               <option value="pv-nr-corp-addr">③ 법인 주소</option>
+              <option value="pv-nr-email">④ 전자우편</option>
               <option value="pv-nr-homebase">사용본거지 주소</option>
               <option value="pv-nr-phone">④ 전화번호</option>
               <option value="pv-nr-color">⑤ 차량 색상</option>
@@ -807,11 +811,11 @@ body{font-family:var(--font);font-size:13px;color:var(--text);height:100vh;overf
    COMPANY DATA
 ================================================================ */
 const COMPANIES = [
-  { name:'주식회사 아이카',    biz:'503-88-01369', reg:'135811-0367798', ceo:'김영혁', addr:'경기도 수원시 권선구 수인로 43-2(서둔동)',      tel:'031-232-0707' },
-  { name:'주식회사 달카',      biz:'188-81-02156', reg:'135811-0409011', ceo:'최근자', addr:'경기도 수원시 권선구 수인로 43-2, 2층(서둔동)', tel:'031-232-0707' },
-  { name:'주식회사 렌트로',    biz:'880-86-02029', reg:'161411-0051230', ceo:'김효진', addr:'경기도 수원시 권선구 효탑로16번길 26(탑동)',     tel:'' },
-  { name:'주식회사 동행카',    biz:'359-81-02777', reg:'161411-0052197', ceo:'서동오', addr:'경기도 수원시 권선구 수인로 43-2, 1층(서둔동)', tel:'031-232-0707' },
-  { name:'서현렌트카 주식회사',biz:'886-88-00095', reg:'134811-0336249', ceo:'황대남', addr:'경기도 화성시 융건로 47-6(기안동)',             tel:'' },
+  { name:'주식회사 아이카',    biz:'503-88-01369', reg:'135811-0367798', ceo:'김영혁', addr:'경기도 수원시 권선구 수인로 43-2(서둔동)',      tel:'031-232-0707', email:'sky_belly@naver.com' },
+  { name:'주식회사 달카',      biz:'188-81-02156', reg:'135811-0409011', ceo:'최근자', addr:'경기도 수원시 권선구 수인로 43-2, 2층(서둔동)', tel:'031-232-0707', email:'dalcar1@naver.com' },
+  { name:'주식회사 렌트로',    biz:'880-86-02029', reg:'161411-0051230', ceo:'김효진', addr:'경기도 수원시 권선구 효탑로16번길 26(탑동)',     tel:'',             email:'' },
+  { name:'주식회사 동행카',    biz:'359-81-02777', reg:'161411-0052197', ceo:'서동오', addr:'경기도 수원시 권선구 수인로 43-2, 1층(서둔동)', tel:'031-232-0707', email:'' },
+  { name:'서현렌트카 주식회사',biz:'886-88-00095', reg:'134811-0336249', ceo:'황대남', addr:'경기도 화성시 융건로 47-6(기안동)',             tel:'',             email:'' },
 ];
 
 /* ================================================================
@@ -980,7 +984,7 @@ function onCompanyChange(){
   /* 이사회의결서 */
   sv('inp-bm-corp-name',c.name);
   /* 신규등록신청서 */
-  sv('inp-nr-corp-name',c.name);sv('inp-nr-corp-reg',c.reg);sv('inp-nr-corp-addr',c.addr);
+  sv('inp-nr-corp-name',c.name);sv('inp-nr-corp-reg',c.reg);sv('inp-nr-corp-addr',c.addr);sv('inp-nr-email',c.email||'');
   /* 사용본거지: 전용 드롭박스가 [기본(법인 주소)]인 경우에만 법인 주소로 동기화 */
   const homebaseSel=document.getElementById('sel-nr-homebase');
   if(!homebaseSel||homebaseSel.value===''){
@@ -1130,6 +1134,7 @@ const FORM_COORDINATES = {
     'pv-nr-corp-reg':   {top:224, left:443},
     'pv-nr-corp-addr':  {top:279, left:164},
     /* 사용본거지 주소 — 서식의 사용본거지 칸 위치 (미세 조정 패널로 조절 가능) */
+    'pv-nr-email':      {top:324, left:164},
     'pv-nr-homebase':   {top:475, left:162},
     'pv-nr-phone':      {top:329, left:446},
     'pv-nr-color':      {top:380, left:560},
@@ -1204,6 +1209,7 @@ function renderNR(){
   S('pv-nr-corp-name', gv('inp-nr-corp-name'));
   S('pv-nr-corp-reg',  gv('inp-nr-corp-reg'));
   S('pv-nr-corp-addr', gv('inp-nr-corp-addr'));
+  S('pv-nr-email',     gv('inp-nr-email'));
   /* 사용본거지: inp-nr-homebase 값을 그대로 출력 */
   S('pv-nr-homebase',  gv('inp-nr-homebase'));
   S('pv-nr-phone',     gv('inp-nr-phone'));
